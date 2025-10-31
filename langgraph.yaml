@@ -1,0 +1,64 @@
+name: inventory-wastage-monitor
+description: LangGraph orchestration for inventory wastage monitoring
+nodes:
+  - id: fetch_snowflake
+    type: python
+    path: snowflake_read.py
+    func: fetch_recent_wastage
+
+  - id: summarize
+    type: python
+    path: summarizer.py
+    func: make_text_chunks
+
+  - id: embed_upsert
+    type: python
+    path: pinecone_index.py
+    func: upsert_chunks
+
+  - id: retrieval
+    type: python
+    path: pinecone_index.py
+    func: query_similar
+
+  - id: analyzer
+    type: llm
+    provider: gemini
+    prompt_template: |-
+      Analyze the following recent inventory wastage incidents and detect patterns, root causes, and urgent items. Produce recommendations prioritized by impact and ease of remediation.
+      CONTEXT:
+      {{retrieval_results}}
+
+  - id: recommender
+    type: llm
+    provider: gemini
+    prompt_template: |-
+      Convert the analyzer output into a short actionable recommendations list with 1-3 high priority actions and email-ready content.
+      ANALYSIS:
+      {{analyzer_output}}
+
+  - id: email_sender
+    type: python
+    path: email_sender.py
+    func: send_email_smtp
+    inputs:
+      - recommender_output
+      - manager_email
+
+edges:
+  - from: fetch_snowflake
+    to: summarize
+  - from: summarize
+    to: embed_upsert
+  - from: embed_upsert
+    to: retrieval
+  - from: retrieval
+    to: analyzer
+  - from: analyzer
+    to: recommender
+  - from: recommender
+    to: email_sender
+
+triggers:
+  - schedule: cron: '0 */6 * * *'
+    start_node: fetch_snowflake
