@@ -2,6 +2,7 @@ import streamlit as st
 from dotenv import load_dotenv
 load_dotenv()
 import os
+import pandas as pd
 from snowflake_read import fetch_recent_wastage
 from genai_agent import generate_wastage_predictions
 from email_sender import send_email_smtp
@@ -49,7 +50,7 @@ if st.button('Run analysis now'):
         body_lines.append("")
         body_lines.append("Automated recommendations (sample):")
         # include sample LLM recommendations for top 3 if present
-        sample_recs = pred_df.get("LLM_RECOMMENDATION", []).dropna().astype(str) if hasattr(pred_df, "get") or hasattr(pred_df, "dropna") else []
+        sample_recs = ( pred_df["LLM_RECOMMENDATION"].dropna().astype(str)if isinstance(pred_df, pd.DataFrame) and "LLM_RECOMMENDATION" in pred_df.columns else pd.Series([], dtype=str))
         for rec in (sample_recs.head(3).tolist() if hasattr(sample_recs, "head") else list(sample_recs)[:3]):
             body_lines.append(rec)
         body_lines.append("")
