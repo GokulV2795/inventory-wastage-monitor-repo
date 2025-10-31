@@ -195,12 +195,12 @@ def call_gemini_for_explanations(rows: list, timeout: int = 20) -> list:
     genai.configure(api_key=GOOGLE_API_KEY)
 
     # Try flash first, then fallback to gemini-pro if unavailable
-    model_name = "gemini-2.5-flash"
+    model_name = "gemini-2.5-pro"
     try:
         model = genai.GenerativeModel(model_name)
         _ = model.generate_content("Test connection")  # sanity check
     except Exception:
-        model_name = "models/gemini-2.5-flash"
+        model_name = "models/gemini-2.5-pro"
         model = genai.GenerativeModel(model_name)
 
     print(f"[INFO] Using Gemini model: {model_name}")
