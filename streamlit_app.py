@@ -23,7 +23,7 @@ if st.button('Run analysis now'):
         # Show to user
         st.subheader("Predicted Wastage Risk (preview)")
         try:
-            st.dataframe(pred_df[["SKU_ID","SKU_NAME","CATEGORY","WASTAGE_PREDICTOR","RISK_SCORE","DAYS_TO_EXPIRY_EST","LLM_RECOMMENDATION"]].head(50))
+            st.dataframe(pred_df[["SKU_ID","SKU_NAME","CATEGORY","WASTAGE_PREDICTOR","RISK_SCORE","DAYS_TO_EXPIRY_EST","AI_RECOMMENDATION"]].head(50))
         except Exception:
             st.dataframe(pred_df.head(50))
 
@@ -35,7 +35,7 @@ if st.button('Run analysis now'):
             "",
             "Attached are the latest wastage risk predictions and recommendations.",
             "",
-            f"Total rows analyzed: {len(pred_df)}",
+            f"Analysis period: Last {days} days",
             "",
             "Top HIGH risk items:",
         ]
@@ -50,7 +50,7 @@ if st.button('Run analysis now'):
         body_lines.append("")
         body_lines.append("Automated recommendations (sample):")
         # include sample LLM recommendations for top 3 if present
-        sample_recs = ( pred_df["LLM_RECOMMENDATION"].dropna().astype(str)if isinstance(pred_df, pd.DataFrame) and "LLM_RECOMMENDATION" in pred_df.columns else pd.Series([], dtype=str))
+        sample_recs = ( pred_df["AI_RECOMMENDATION"].dropna().astype(str)if isinstance(pred_df, pd.DataFrame) and "AI_RECOMMENDATION" in pred_df.columns else pd.Series([], dtype=str))
         for rec in (sample_recs.head(3).tolist() if hasattr(sample_recs, "head") else list(sample_recs)[:3]):
             body_lines.append(rec)
         body_lines.append("")
